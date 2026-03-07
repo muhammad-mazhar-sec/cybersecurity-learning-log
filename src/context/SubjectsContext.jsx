@@ -6,6 +6,8 @@ const HIDDEN_BUILTIN_KEY = 'cyberlearn_hidden_builtins';
 
 const SubjectsContext = createContext(null);
 
+const generateId = () => `id_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
 export function SubjectsProvider({ children }) {
   const [customSubjects, setCustomSubjects] = useState(() => {
     try {
@@ -34,8 +36,6 @@ export function SubjectsProvider({ children }) {
 
   const getSubject = useCallback((id) =>
     subjects.find(s => s.id === id), [subjects]);
-
-  const generateId = () => `id_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
   // Subject CRUD
   const addSubject = useCallback((data) => {

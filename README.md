@@ -1,16 +1,42 @@
-# React + Vite
+# Cybersecurity Learning Journey
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+👤 **Name:** Muhammad Mazhar  
+🎯 **Goal:** SOC Analyst  
+⏱️ **Study Time:** 3–5 hours/day  
 
-Currently, two official plugins are available:
+## What this repo shows
+- Daily learning logs
+- Hands-on labs and notes
+- Tools usage (legal & ethical)
+- Security concepts explained in my own words
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🛡️ CyberLearn App
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+An interactive web application for studying cybersecurity topics through a flashcard-based learning system with full subject management.
 
-## Expanding the ESLint configuration
+### Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Built-in subjects**: Security+, Network+, OWASP Top 10 with flashcard content
+- **Custom subjects**: Add, edit, and delete your own study subjects from the UI
+- **Full hierarchy**: Subjects → Modules → Decks → Cards
+- **Flashcard viewer**: 3D flip cards with definition, key points, and exam tips
+- **Mind map view**: Auto-generated SVG tree of your study content
+- **Edit mode**: Toggle pencil icon to show edit/delete controls
+- **Data persistence**: All custom data saved to `localStorage`
+- **Export/Import**: Backup and restore your data as JSON
+- **Dark UI**: Mobile-friendly dark theme
+
+### Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+### Tech Stack
+
+- [Vite](https://vitejs.dev/) + [React](https://react.dev/)
+- [Tailwind CSS v3](https://tailwindcss.com/)
+- [React Router v6](https://reactrouter.com/)
