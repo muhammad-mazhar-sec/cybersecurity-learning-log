@@ -63,4 +63,10 @@ ssh sysadmin@192.168.122.141
 
 ### Command Breakdown:
 * `virsh net-dhcp-leases default`: Queries the libvirt network daemon (`virsh`) for active DHCP IP addresses assigned on the `default` virtual network.
+
 * `ssh sysadmin@192.168.122.141`: Establishes a secure shell (`ssh`) connection to the remote host using the standard user account (`sysadmin`).
+
+### 5. Final State Verification
+Verified the documentation directory structure and confirmed the Alpine VM is successfully provisioned and currently resting in a `shut off` state.
+
+![Directory tree and Alpine VM shut off state](../assets/images/02-alpine-vm-status.png)
