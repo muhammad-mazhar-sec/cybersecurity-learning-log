@@ -16,9 +16,13 @@ This document outlines the provisioning of the bare-metal host as a virtualizati
 ## 1. Hardware Verification
 Before installing hypervisor software, verify that the host CPUs support hardware virtualization (VT-x):
 
-\`\`\`bash
+
+```bash
+
 egrep -c '(vmx|svm)' /proc/cpuinfo
-\`\`\`
+
+```
+
 *(A return value greater than 0 confirms hardware support. The dual Xeon E5540 processors returned 16 supported threads).*
 
 **Command Breakdown:**
@@ -32,10 +36,10 @@ egrep -c '(vmx|svm)' /proc/cpuinfo
 ## 2. Core Package Installation
 Install the QEMU emulator, the libvirt management daemon, networking utilities, and the graphical management interface:
 
-\`\`\`bash
+```bash
 sudo apt update
 sudo apt install -y qemu-system-x86 libvirt-daemon-system libvirt-clients bridge-utils virt-manager
-\`\`\`
+```
 
 **Command Breakdown:**
 * **`apt install`**: The Advanced Package Tool command to download and unpack software.
@@ -50,10 +54,10 @@ sudo apt install -y qemu-system-x86 libvirt-daemon-system libvirt-clients bridge
 ## 3. Privilege Delegation
 Allow the standard user account to manage virtual machines and interact with `libvirtd` without requiring `root` access:
 
-\`\`\`bash
+```bash
 sudo usermod -aG libvirt $USER
 sudo usermod -aG kvm $USER
-\`\`\`
+```
 *(Note: A complete session logout is required for group policy changes to apply).*
 
 **Command Breakdown:**
@@ -67,11 +71,11 @@ sudo usermod -aG kvm $USER
 ## 4. Service Management
 Enable the libvirt daemon to start automatically during the host boot sequence and verify it is actively running:
 
-\`\`\`bash
+```bash
 sudo systemctl enable --now libvirtd
 sudo systemctl status libvirtd
-\`\`\`
 
+```
 **Command Breakdown:**
 * **`systemctl`**: The control command for `systemd`, managing background services.
 * **`enable`**: Configures the service to start automatically on system boot.
@@ -82,10 +86,10 @@ sudo systemctl status libvirtd
 ## 5. Storage Architecture (Secondary SSD)
 By default, KVM provisions virtual disks in `/var/lib/libvirt`. To bypass primary drive limits, the `kvm` group must be granted explicit read/write/execute permissions to the secondary drive directory:
 
-\`\`\`bash
+```bash
 sudo chgrp -R kvm /mnt/Daraz_SSD/linux-lab/
 sudo chmod -R 775 /mnt/Daraz_SSD/linux-lab/
-\`\`\`
+```
 *Following this permission change, `/mnt/Daraz_SSD/linux-lab/` was successfully mounted as the primary Storage Pool in virt-manager.*
 
 **Command Breakdown:**
