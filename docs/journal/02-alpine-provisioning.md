@@ -1,26 +1,43 @@
-# Date: 2026-06-13
-# Task: Provisioning the Alpine Gateway
+# Infrastructure Log: Edge Node Provisioning (proxy-alp-01)
+**Date:** 2026-06-13
+**Environment:** Debian 13 Host -> KVM/libvirt -> Alpine Linux 3.24 Guest
 
-## 1. Objective
-Provision `proxy-alp-01` via the command line interface to serve as the edge gateway, bypassing GUI management tools to simulate a modern, headless data center deployment.
+## 1. Executive Summary
+The objective was to provision a headless, lightweight edge gateway (`proxy-alp-01`) using the `virt-install` CLI. During the deployment, several hypervisor and I/O bottlenecks were encountered, requiring targeted troubleshooting to successfully commit the OS to the secondary SSD storage pool.
 
-## 2. Troubleshooting & Remediation
-* **Issue 1:** `virt-install` failed to locate the `admin-lab` storage pool.
-  * *Root Cause:* Command executed in the local user session (`qemu:///session`) rather than the system hypervisor.
-  * *Fix:* Appended `--connect qemu:///system` to the command.
-* **Issue 2:** `Requested operation is not valid: network 'default' is not active`.
-  * *Root Cause:* The KVM virtual router did not auto-start upon installation.
-  * *Fix:* Executed `virsh net-start default` and `virsh net-autostart default`.
-* **Issue 3:** Virtual console locked up during OS extraction to the virtual disk.
-  * *Root Cause:* KVM provisioned the virtual disk as an emulated IDE controller (`sda`), creating a severe I/O software bottleneck on the host.
-  * *Fix:* Modified the provisioning command to utilize the `virtio` bus (`vda`), allowing direct, high-speed access to the physical SSD controller.
+---
 
-## 3. Provisioning Execution
-Successfully allocated a 5GB `qcow2` virtual drive on the secondary storage pool and booted the Alpine 3.24 live CD.
+## 2. Deployment Execution & Roadblocks
+
+### Roadblock A: Unprivileged Session Isolation
+* **Symptom:** The `virt-install` command failed with `Storage pool not found: admin-lab`.
+* **Root Cause Analysis:** Executing the command as a standard user defaulted the connection to the isolated user session (`qemu:///session`), which has no visibility into the system-wide storage pools created by `root`.
+* **Resolution:** Explicitly declared the connection string to target the system daemon and exported it to the bash profile for future sessions.
+  ```bash
+  export LIBVIRT_DEFAULT_URI='qemu:///system'
+  ```
+
+### Roadblock B: Virtual Network Inactive
+* **Symptom:** Provisioning aborted with `Requested operation is not valid: network 'default' is not active`.
+* **Root Cause Analysis:** The libvirt installation did not set the default NAT virtual router to autostart upon host boot.
+* **Resolution:** Manually initialized the network and enabled the autostart flag to ensure survivability across host reboots.
+  ```bash
+  virsh net-start default
+  virsh net-autostart default
+  ```
+
+### Roadblock C: Severe I/O Bottleneck (Host Lockup)
+* **Symptom:** During the `setup-alpine` disk formatting phase, the VNC console completely froze, requiring a manual reboot of the virtual machine.
+* **Root Cause Analysis:** KVM defaulted to provisioning the virtual drive over an emulated IDE controller (`sda`). When the Alpine installer flooded the emulated controller with write requests to the physical SSD, the software translation bottleneck caused a total guest kernel lockup.
+* **Resolution:** Wiped the corrupted disk and injected **VirtIO** paravirtualized drivers into the provisioning command, allowing the guest OS direct, high-speed access to the storage controller as `vda`.
+
+---
+
+## 3. Final Implementation
+
+Following the resolution of the I/O bottleneck, the optimized provisioning command was executed successfully:
 
 ```bash
-# Headless VM Provisioning Command
-
 virt-install \
   --connect qemu:///system \
   --name proxy-alp-01 \
@@ -34,39 +51,15 @@ virt-install \
   --noautoconsole
 ```
 
-### Command Breakdown:
-* `virt-install`: The command-line tool for provisioning new virtual machines via libvirt.
-* `--connect qemu:///system`: Explicitly connects to the system-wide hypervisor daemon, bypassing the unprivileged user session.
-* `--name proxy-alp-01`: Assigns the libvirt domain name (used for management commands).
-* `--memory 1024`: Allocates 1024 MB (1 GB) of RAM to the guest OS.
-* `--vcpus 1`: Allocates a single virtual CPU thread to the guest OS.
-* `--disk`: Configures the storage backend.
-  * `pool=admin-lab`: Directs creation to a specific pre-configured storage pool.
-  * `size=5`: Defines the maximum capacity as 5 GB.
-  * `format=qcow2`: Uses qcow2 for thin provisioning (only consumes physical space as data is written).
-  * `bus=virtio`: Critical optimization; utilizes paravirtualized drivers to bypass IDE emulation bottlenecks.
-* `--cdrom [...]`: Mounts the specified ISO image as a virtual optical drive for the initial boot.
-* `--os-variant generic`: Optimizes KVM parameters for a generic Linux kernel.
-* `--network network=default`: Attaches the VM to the KVM default NAT virtual router.
-* `--graphics vnc`: Provisions a virtual display buffer accessible via VNC clients.
-* `--noautoconsole`: Prevents `virt-install` from automatically attempting to launch a viewer, allowing headless background execution.
-
-## 4. Verification
-After utilizing `setup-alpine` via the virtual console to commit the OS to the `vda` block device, the system was rebooted and the console was detached.
+## 4. Verification & Handoff
+The OS was successfully committed to the `vda` block device. The virtual console was detached, and a remote headless management session was established via the dynamically assigned IP from the KVM DHCP server.
 
 ```bash
-# Remote Access Verification
-
+# Querying the KVM router for the assigned IP
 virsh net-dhcp-leases default
+
+# Establishing remote connection
 ssh sysadmin@192.168.122.141
 ```
 
-### Command Breakdown:
-* `virsh net-dhcp-leases default`: Queries the libvirt network daemon (`virsh`) for active DHCP IP addresses assigned on the `default` virtual network.
-
-* `ssh sysadmin@192.168.122.141`: Establishes a secure shell (`ssh`) connection to the remote host using the standard user account (`sysadmin`).
-
-### 5. Final State Verification
-Verified the documentation directory structure and confirmed the Alpine VM is successfully provisioned and currently resting in a `shut off` state.
-
-![Directory tree and Alpine VM shut off state](../assets/images/02-alpine-vm-status.png)
+![Successful SSH connection to the Alpine Gateway](../assets/images/03-alpine-ssh-success.png)
