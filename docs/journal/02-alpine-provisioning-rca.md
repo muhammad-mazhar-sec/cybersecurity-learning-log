@@ -48,4 +48,4 @@ virsh net-dhcp-leases default
 ssh sysadmin@192.168.122.141
 ```
 
-![Edge Node SSH Validation](../assets/images/03-alpine-ssh-success.png)
+![Edge Node SSH Validation](../assets/images/02-alpine-vm-status.png)
